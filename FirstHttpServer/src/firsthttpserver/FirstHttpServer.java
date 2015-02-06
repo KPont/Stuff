@@ -4,7 +4,11 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 
@@ -24,6 +28,7 @@ public class FirstHttpServer {
         HttpServer server = HttpServer.create(new InetSocketAddress(ip, port), 0);
         server.createContext("/welcome", new RequestHandler());
         server.createContext("/headers", new RequestHandler2());
+        server.createContext("/pages/", new RequestHandler3());
         server.setExecutor(null); // Use the default executor
         server.start();
         System.out.println("Server started, listening on port: " + port);
@@ -56,6 +61,7 @@ public class FirstHttpServer {
             }
         }
     }
+
     static class RequestHandler2 implements HttpHandler {
 
         @Override
@@ -64,7 +70,7 @@ public class FirstHttpServer {
 //                    = "Welcome to my very first almost home made Web Server :-)";
 //            he.sendResponseHeaders(200, response.length());
             Headers rh = he.getRequestHeaders();
-            
+
             StringBuilder sb = new StringBuilder();
             sb.append("<!DOCTYPE html>\n");
             sb.append("<html>\n");
@@ -120,5 +126,31 @@ public class FirstHttpServer {
             }
         }
     }
-    
+
+    static class RequestHandler3 implements HttpHandler {
+        
+        String contentFolder = "public/";
+        
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            
+            File file = new File(contentFolder + "index.html");          
+            byte[] bytesToSend = new byte[(int) file.length()];
+            try {
+                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+                bis.read(bytesToSend, 0, bytesToSend.length);
+            } catch (IOException ie) {
+                ie.printStackTrace();
+            }
+            he.sendResponseHeaders(200, bytesToSend.length);
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(bytesToSend, 0, bytesToSend.length);
+            }
+            
+            Headers h = he.getResponseHeaders();
+            h.add("Content-Type", "text / html");
+        }
+        
+    }
+
 }
