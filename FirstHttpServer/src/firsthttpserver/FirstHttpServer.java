@@ -182,7 +182,7 @@ public class FirstHttpServer {
             Scanner scan = new Scanner(he.getRequestBody());
             while (scan.hasNext()) {
                 sb.append("Request body, with Post-parameters: " + scan.nextLine());
-                sb.append("</br>");
+                sb.append("</br> ");
             }
             sb.append("</h2>\n");
             sb.append("</body>\n");
